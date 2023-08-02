@@ -5,12 +5,14 @@ using UnityEngine;
 
 public class PlayerState : MonoBehaviour
 {
-
+    public RayCastGun rayCastGun;
+    public PlayerController playerController;
     public CharacterControllerMenu characterController;
     public GunControllerMenu gunController;
     public LRFControllerMenu LRFController;
     public TextMeshProUGUI inputField;
     Dictionary<string, string> prefs;
+    
 
     private void Awake()
     {
@@ -55,6 +57,27 @@ public class PlayerState : MonoBehaviour
 
         PlayerPrefs.Save();
     }
+
+    public void saveGameStatus()
+    {
+        // Get relevant variables from the RayCastGun script
+        int totalShots = rayCastGun.totalShots;
+        int hitShots = rayCastGun.hitShots;
+        int totalDamage = rayCastGun.totalDamage;
+        int enemiesKilled = rayCastGun.enemiesKilled;
+        float gameDuration = rayCastGun.gameDuration;
+
+        PlayerPrefs.SetInt("TotalShots", totalShots);
+        PlayerPrefs.SetInt("HitShots", hitShots);
+        PlayerPrefs.SetInt("TotalDamage", totalDamage);
+        PlayerPrefs.SetInt("EnemiesKilled", enemiesKilled);
+        PlayerPrefs.SetFloat("GameDuration", gameDuration);
+
+        // Save all PlayerPrefs data
+        PlayerPrefs.Save();
+
+    }
+
 
     public static Dictionary<string,string> LoadGame()
     {

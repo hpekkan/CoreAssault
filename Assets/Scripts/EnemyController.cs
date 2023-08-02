@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class EnemyController : MonoBehaviour
 {
@@ -11,11 +12,11 @@ public class EnemyController : MonoBehaviour
     }
 
     public EnemyType enemyType;
-    public float moveSpeedMin = 10f;
-    public float moveSpeedMax = 30f;
+    public float moveSpeedMin = 1f;
+    public float moveSpeedMax = 10f;
     private float moveSpeed;
-    public int maxHealth = 1000;
-    private int currentHealth;
+    public float maxHealth = 1000;
+    private float currentHealth;
 
     public GameObject playerCharacter;
     public Transform player;
@@ -52,8 +53,9 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(float damage)
     {
+        Debug.Log("Enemy took " + damage + " damage.");
         currentHealth -= damage;
         if (currentHealth <= 0)
         {
@@ -77,6 +79,8 @@ public class EnemyController : MonoBehaviour
     private void GameOver()
     {
         // Pause the game or implement other game-ending actions.
-        Time.timeScale = 0f;
+        //Time.timeScale = 0f;
+        
+        SceneManager.LoadScene("FinishScene", LoadSceneMode.Single);
     }
 }

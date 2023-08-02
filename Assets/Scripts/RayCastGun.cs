@@ -21,6 +21,14 @@ public class RayCastGun : MonoBehaviour
     private bool isFiring = true;
     private float loadedEnergy;
 
+
+    public int totalShots = 0;
+    public int hitShots = 0;
+    public int totalDamage = 0;
+    public int enemiesKilled = 0;
+    public float gameDuration = 0f;
+
+
     // Weapon Shooting System
     public enum WeaponRange { Range10, Range15, Range20 }
     public WeaponRange weaponRange = WeaponRange.Range10;
@@ -34,6 +42,7 @@ public class RayCastGun : MonoBehaviour
     float initialLaserWidth;
     LineRenderer laserLine;
     float fireTimer = 0f;
+
 
     private void Awake()
     {
@@ -60,13 +69,20 @@ public class RayCastGun : MonoBehaviour
         if (Input.GetButtonUp("Fire1"))
         {
             isFiring = false;
-            Shoot();
+            if (currentTemperature == minTemperature)
+            {
+                Shoot();
+                totalShots++;
+            }
         }
         coolingDuration = Mathf.Pow(2, currentTemperature / 10) / Mathf.Pow(2, currentTemperature / 20);
+
         if (currentTemperature > minTemperature && !isFiring)
         {
             currentTemperature = Mathf.Max(currentTemperature - (Time.deltaTime * (50f / coolingDuration)), minTemperature);
         }
+
+        gameDuration = GetGameDuration();
     }
 
     IEnumerator EnergyLoading()
@@ -89,13 +105,24 @@ public class RayCastGun : MonoBehaviour
             laserLine.endWidth = width;
             if (elapsedTime >= energyLoadingDuration)
             {
-                
-                yield break; // Stop the coroutine after Shoot() is called
+                laserLine.startWidth = 1f;
+                laserLine.endWidth = 1f;
+                Shoot();
+                elapsedTime = 0f;
+                laserLine.startWidth = initialLaserWidth;
+                laserLine.endWidth = initialLaserWidth;
+
+                // Reset the laser width and height after energy loading is complete
+                isFiring = false;
+                yield return null; 
+
+
             }
 
             yield return null; // Pause the coroutine and resume in the next frame
         }
         Shoot();
+        elapsedTime=0f;
         // The coroutine will only reach this point if !isFiring
         laserLine.startWidth = initialLaserWidth;
         laserLine.endWidth = initialLaserWidth;
@@ -109,7 +136,7 @@ public class RayCastGun : MonoBehaviour
         float usedEnergy = loadedEnergy;
         loadedEnergy = 0f;
         // Check if there is enough battery and temperature for shooting
-        if (usedEnergy <= currentBattery && currentTemperature <= minTemperature)
+        if (usedEnergy <= currentBattery)
         {
             currentBattery -= usedEnergy;
             currentTemperature += usedEnergy / 10f;
@@ -122,11 +149,13 @@ public class RayCastGun : MonoBehaviour
     {
         float range = GetWeaponRangeValue(weaponRange);
 
-        Vector3 rayOrigin = playerCamera.ViewportToWorldPoint(new Vector3(x, y, z));
+        Vector3 rayOrigin = laserOrigin.position;
+
         RaycastHit hit;
 
-        if (Physics.Raycast(rayOrigin, laserOrigin.forward, out hit, range))
+        if (Physics.Raycast(laserOrigin.position, laserOrigin.forward, out hit, range))
         {
+            EnemyController controller = hit.collider.GetComponent<EnemyController>();
             float distance_to_target = Vector3.Distance(rayOrigin, hit.point);
             float firePower = CalculateFirePower(loadedEnergy, distance_to_target);
             laserLine.SetPosition(0, laserOrigin.position);
@@ -137,7 +166,16 @@ public class RayCastGun : MonoBehaviour
 
             if (firePower > 0f)
             {
-                DealDamage(hit.collider.gameObject, firePower);
+
+                hitShots++;
+                totalDamage += (int)firePower;
+                if (controller != null)
+                {
+                    // Call TakeDamage on the enemy.
+                    Destroy(hit.collider.gameObject);
+                    //controller.TakeDamage(firePower);
+
+                }
             }
 
 
@@ -151,36 +189,9 @@ public class RayCastGun : MonoBehaviour
         StartCoroutine(RenderLaser());
     }
 
-    void DealDamage(GameObject target, float damage)
-    {
-        Renderer enemyRenderer = target.GetComponent<Renderer>();
-        if (enemyRenderer != null)
-        {
-            Material originalMaterial = enemyRenderer.material;
-
-            // Set the hit material to the enemy
-            enemyRenderer.material = hitMaterial;
-            Debug.Log(target.gameObject.name + " is hit by " + damage + " damage");
-
-            StartCoroutine(ResetMaterialAfterDelay(enemyRenderer, originalMaterial, 0.2f));
-        }
+  
 
 
-    }
-    IEnumerator ResetMaterialAfterDelay(Renderer renderer, Material originalMaterial, float delay)
-    {
-        // Wait for the specified delay
-        yield return new WaitForSeconds(delay);
-
-        // Reset the enemy's material back to the original
-        renderer.material = originalMaterial;
-    }
-
-    float GetCoolingDuration()
-    {
-        float currentTemp = currentTemperature;
-        return (currentTemp - minTemperature) / (maxTemperature - minTemperature) * coolingDuration / 2f;
-    }
 
     IEnumerator RenderLaser()
     {
@@ -231,5 +242,10 @@ public class RayCastGun : MonoBehaviour
             default:
                 return 10f;
         }
+    }
+
+    private float GetGameDuration()
+    {
+        return Time.time;
     }
 }

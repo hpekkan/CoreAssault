@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
 
+
     Vector3 rot = new Vector3(0, 180, 0);
 	float rotSpeed = 40f;
     //float rotSpeed = 40f;
@@ -99,6 +100,16 @@ public class PlayerController : MonoBehaviour
 				anim.SetBool("Open_Anim", false);
 			}
 		}*/
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.tag == "Monster")
+        {
+            anim.SetBool("Walk_Anim", false);
+            Debug.Log("test");
+
+        }
     }
 
 }
