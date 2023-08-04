@@ -1,9 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using System.Threading;
+using UnityEngine.UI;
+using System.Collections;
 
 public class EnemyController : MonoBehaviour
 {
+    public new Transform transform;
     public enum EnemyType
     {
         X,
@@ -17,70 +21,90 @@ public class EnemyController : MonoBehaviour
     private float moveSpeed;
     public float maxHealth = 1000;
     private float currentHealth;
-
+    private bool isStopped = false;
     public GameObject playerCharacter;
     public Transform player;
     private Rigidbody rb;
+    Animator anim;
 
-    private static List<EnemyController> allEnemies = new List<EnemyController>();
+    private GameObject HealthBar;
+
+    public static List<EnemyController> allEnemies = new List<EnemyController>();
+
+    public float stunDuration = 2.0f; // The duration of the stun in seconds
+    private bool isStunned = false; // Flag to indicate if the enemy is currently stunned
+
+    private float timer = 0f;
+    public EnemySpawner enemySpawner;
 
     private void Start()
     {
+        var canvas = GetComponentInChildren<Canvas>().gameObject;
+        HealthBar = canvas.transform.GetChild(0).gameObject;
+        transform = GetComponent<Transform>();
         rb = GetComponent<Rigidbody>();
         currentHealth = maxHealth;
+        playerCharacter = GameObject.FindWithTag("Player");
         player = playerCharacter.transform;
         moveSpeed = Random.Range(moveSpeedMin, moveSpeedMax);
         allEnemies.Add(this);
+        anim = GetComponent<Animator>();
+        enemySpawner = GameObject.Find("Spawner").GetComponent<EnemySpawner>();
     }
 
     private void FixedUpdate()
     {
-        if (player)
+        if (!isStunned && player && !isStopped)
         {
             Vector3 moveDirection = (player.position - transform.position).normalized;
             rb.velocity = moveDirection * moveSpeed;
             rb.MoveRotation(Quaternion.LookRotation(moveDirection));
         }
+        HealthBar.transform.LookAt(Camera.main.transform);
+        HealthBar.GetComponent<Slider>().value = currentHealth / maxHealth;
     }
 
-    private void OnCollisionEnter(Collision collision)
+    private void Update()
     {
-        if (collision.gameObject.CompareTag("Player"))
+        timer += Time.deltaTime;
+        if (rb.velocity.magnitude > 0.1f)
         {
-            // Game over when colliding with the player.
-            Debug.Log("Collided with the player! Game over.");
-            GameOver();
+            anim.SetBool("Walk Forward", true);
+        }
+        else
+        {
+            anim.SetBool("Walk Forward", false);
         }
     }
 
-    public void TakeDamage(float damage)
+    public bool TakeDamage(float damage)
     {
-        Debug.Log("Enemy took " + damage + " damage.");
         currentHealth -= damage;
+        anim.SetBool("Take Damage", true);
+         // Enemy is stunned when taking damage
+        if(!isStunned)
+        {
+            isStopped = true;
+            isStunned = true;
+            StartCoroutine(TimerToMove());
+        }
+        
+        
         if (currentHealth <= 0)
         {
-            // Remove the enemy from the list when it dies and check the game status.
             allEnemies.Remove(this);
-            CheckGameStatus();
             Destroy(gameObject);
+            enemySpawner.currentEnemyCount--;
+            return true;
         }
+        return false;
     }
 
-    private void CheckGameStatus()
+    IEnumerator TimerToMove()
     {
-        // End the game if all enemies are killed.
-        if (allEnemies.Count == 0)
-        {
-            Debug.Log("All enemies killed! Game over.");
-            GameOver();
-        }
-    }
-
-    private void GameOver()
-    {
-        // Pause the game or implement other game-ending actions.
-        //Time.timeScale = 0f;
-        
-        SceneManager.LoadScene("FinishScene", LoadSceneMode.Single);
+       
+        yield return new WaitForSeconds(stunDuration);
+        isStopped = false;
+        isStunned = false; // Reset the stun flag after the stun duration is over
     }
 }

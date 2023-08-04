@@ -1,21 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
 
-
+    public GameObject HealthBar;
+    
     Vector3 rot = new Vector3(0, 180, 0);
 	float rotSpeed = 40f;
+    public int health = 2;
+    int currHealth;
+    float step;
     //float rotSpeed = 40f;
     Animator anim;
+
+
+    private int width = 406;
+    private int height = 44;
+
+    public GameObject gameController;
 
     // Use this for initialization
     void Awake()
     {
+        gameController = GameObject.Find("GameController");
         anim = gameObject.GetComponent<Animator>();
         gameObject.transform.eulerAngles = rot;
+        HealthBar = GameObject.FindWithTag("HealthBar");
+        currHealth = health;
+        step = 1f / health;
     }
 
     // Update is called once per frame
@@ -107,9 +123,23 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.tag == "Monster")
         {
             anim.SetBool("Walk_Anim", false);
-            Debug.Log("test");
-
+            health--;
+            HealthBar.GetComponent<Slider>().value -= step;
+            Destroy(collision.gameObject);
+            if(health <= 0)
+            {
+                GameOver();
+            }
         }
     }
+    private void GameOver()
+    {
+        GameState gameState =  gameController.GetComponent<GameState>();
+
+        gameState.saveGameStatus();
+
+        SceneManager.LoadScene("FinishScene", LoadSceneMode.Single);
+    }
+
 
 }
