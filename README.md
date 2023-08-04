@@ -8,7 +8,7 @@
 
 https://github.com/hpekkan/bil424_hw2/assets/75019129/4e89ee80-7f27-4a37-a34c-747b588db4b7
 
-If the above video player is not working -> https://youtu.be/r3JvLx0GlTg
+If the above video player is not working -> https://youtu.be/-63oBNQamsI
 
 <ul>
   <li> <a href="https://github.com/hpekkan">Hüseyin PEKKAN</a> 201401016 Artificial Intelligence Engineering</li>
