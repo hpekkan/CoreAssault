@@ -4282,7 +4282,7 @@ MonoBehaviour:
   username: 
   usernameField: {fileID: 0}
   difficulty: {fileID: 0}
-  difficultyLevel: 0
+  difficultyLevel: 1
 --- !u!1 &1818881995
 GameObject:
   m_ObjectHideFlags: 0

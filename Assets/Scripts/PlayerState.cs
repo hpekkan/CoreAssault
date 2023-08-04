@@ -17,7 +17,7 @@ public class PlayerState : MonoBehaviour
     public GameObject usernameField;
 
     public TextMeshProUGUI difficulty;
-    public int difficultyLevel = 0;
+    public int difficultyLevel = 1;
 
     private void Awake()
     {
@@ -51,28 +51,36 @@ public class PlayerState : MonoBehaviour
             usernameField.GetComponent<TMP_InputField>().text = "Enter Username...";
         }
         usernameField.GetComponent<TMP_InputField>().text = prefs["username"];
-        Debug.Log(usernameField.GetComponent<TMP_InputField>().text);
-        
+        if (prefs["difficulty"]!="")
+        difficultyLevel = int.Parse(prefs["difficulty"]);
+
+
     }
     public void NextDifficulty()
     {
-        Debug.Log("Next");
-        difficultyLevel = (difficultyLevel + 1) % 3;
-        difficulty.text = difficultyLevel.ToString();
+        difficultyLevel++;
+        if (difficultyLevel > 3)
+        {
+            difficultyLevel = 1;
+        }
+        
     }
     public void PreviousDifficulty()
     {
-        difficultyLevel = (difficultyLevel + 2) % 3;
-        difficulty.text = difficultyLevel.ToString();
+        difficultyLevel--;
+        if (difficultyLevel < 1)
+        {
+            difficultyLevel = 3;
+        }
     }
-    public void SaveGame(string username,int character,int gun,int lrf)
+    public void SaveGame(string username,int character,int gun,int lrf,int diff)
     {
       
         PlayerPrefs.SetString("username", username);
         PlayerPrefs.SetInt("character", character);
         PlayerPrefs.SetInt("gun", gun);
         PlayerPrefs.SetInt("lrf", lrf);
-        PlayerPrefs.SetInt("difficulty", difficultyLevel);
+        PlayerPrefs.SetInt("difficulty", diff);
 
         PlayerPrefs.Save();
     }
@@ -126,5 +134,7 @@ public class PlayerState : MonoBehaviour
             usernameField.GetComponent<TMP_InputField>().textComponent.color = Color.black;
 
         }
+        if (difficultyLevel == 0) difficultyLevel = 1;
+        difficulty.text =  difficultyLevel.ToString();
     }
 }

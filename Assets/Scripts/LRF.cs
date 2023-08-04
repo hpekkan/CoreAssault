@@ -30,7 +30,6 @@ public class LRF : MonoBehaviour
         {
             angle = 90f;
         }
-        Debug.Log(angle);
     }
 
     private void Update()

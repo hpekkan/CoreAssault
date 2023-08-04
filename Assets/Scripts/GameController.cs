@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
-    PlayerState playerState;
+    EnemySpawner enemySpawner;
     RayCastGun rayCastGun;
     LRF lrfScript;
     Dictionary<string,string> prefs;
@@ -14,12 +14,14 @@ public class GameController : MonoBehaviour
     private int gun;
     private int character;
     private int lrf;
+    private int difficulty;
     public Transform guns;
     public Transform characters;
     public Transform lrfs;
 
     void Awake()
     {
+        enemySpawner = GameObject.Find("Spawner").GetComponent<EnemySpawner>();
         rayCastGun = GameObject.Find("laserOrigin").GetComponent<RayCastGun>();
         lrfScript = GameObject.Find("LRFs").GetComponent<LRF>();
         prefs = PlayerState.LoadGame();
@@ -29,7 +31,7 @@ public class GameController : MonoBehaviour
         lrf = int.Parse(prefs["lrf"]);
         guns = GameObject.Find("laserOrigin").transform;
         lrfs = GameObject.Find("LRFs").transform;
-
+        difficulty = int.Parse(prefs["difficulty"]);
         for(int i =0;i< guns.childCount; i++)
         {
             if(i== gun)
@@ -92,7 +94,17 @@ public class GameController : MonoBehaviour
             lrfScript.angle = 90f;
             lrfScript.lrftype = LRF.lrfType.C;
         }
-        Debug.Log("gun: " + gun + " character: " + character + " lrf: " + lrf);
+
+        if (difficulty == 1)
+        {
+            enemySpawner.hardmode = EnemySpawner.hardMode.easy;
+        }else if(difficulty == 2)
+        {
+            enemySpawner.hardmode = EnemySpawner.hardMode.medium;
+        }else if(difficulty == 3)
+        {
+            enemySpawner.hardmode = EnemySpawner.hardMode.hard;
+        }
 
     }
 }

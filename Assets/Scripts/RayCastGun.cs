@@ -168,7 +168,6 @@ public class RayCastGun : MonoBehaviour
     {
         float usedEnergy = loadedEnergy;
         // Check if there is enough battery and temperature for shooting
-        Debug.Log("usedEenrgy: "+usedEnergy+" battery"+currentBattery);
         if (usedEnergy < currentBattery)
         {
 
