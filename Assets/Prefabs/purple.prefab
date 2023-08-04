@@ -1672,6 +1672,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: RadarPoint
       objectReference: {fileID: 0}
+    - target: {fileID: 2797168928846342905, guid: 63dcd57f40f6b8d43a81cd75f809e916, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4558883925037702383, guid: 63dcd57f40f6b8d43a81cd75f809e916, type: 3}
       propertyPath: m_RootOrder
       value: 0

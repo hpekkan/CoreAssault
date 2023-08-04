@@ -21,7 +21,7 @@ public class RayCastGun : MonoBehaviour
     public float x = 0.5f, y = 0.5f, z = 0.5f;
     public Material hitMaterial;
     public TextMeshProUGUI hitText;
-    
+
     // Weapon Battery System
     public enum BatteryCapacity { Capacity5000, Capacity10000, Capacity15000 }
     public BatteryCapacity batteryCapacity = BatteryCapacity.Capacity5000;
@@ -51,11 +51,11 @@ public class RayCastGun : MonoBehaviour
     float initialLaserWidth;
     LineRenderer laserLine;
     float fireTimer = 0f;
-    
+
     public float averageHitDistance = 0f;
 
 
-    private void Awake()
+    private void Start()
     {
         currentBattery = GetBatteryCapacityValue(batteryCapacity);
         laserLine = GetComponent<LineRenderer>();
@@ -106,34 +106,34 @@ public class RayCastGun : MonoBehaviour
     {
         float elapsedTime = 0f;
         float startWidth = 0.01f;
-        float targetWidth = 0.5f; 
+        float targetWidth = 0.5f;
         float energyLoadingDuration = 5f;
-
-
 
         while (isFiring)
         {
             elapsedTime += Time.deltaTime;
             loadedEnergy = Mathf.Pow(2, elapsedTime) * 100;
-            if ( currentBattery!=0&&loadedEnergy > currentBattery)
+            if (currentBattery != 0 && loadedEnergy > currentBattery)
             {
                 loadedEnergy = currentBattery;
-            }else if(currentBattery==0)
+            }
+            else if (currentBattery == 0)
             {
                 loadedEnergy = 0;
                 break;
             }
             float normalizedEnergy = Mathf.Log(loadedEnergy / 100) / Mathf.Log(2f) / 5;
             EnergyBar.GetComponent<Slider>().value = normalizedEnergy;
-            
+
             float width = Mathf.Lerp(startWidth, targetWidth, elapsedTime / energyLoadingDuration);
             laserLine.startWidth = width;
             laserLine.endWidth = width;
-            if (elapsedTime >= energyLoadingDuration)
+
+            if (energyLoadingDuration > 0 && elapsedTime >= energyLoadingDuration)
             {
                 laserLine.startWidth = 0.5f;
                 laserLine.endWidth = 0.5f;
-                
+
                 elapsedTime = 0f;
                 EnergyBar.GetComponent<Slider>().value = 0;
 
@@ -142,15 +142,18 @@ public class RayCastGun : MonoBehaviour
 
                 // Reset the laser width and height after energy loading is complete
                 isFiring = false;
-                yield return null; 
-
-
+                yield return null;
             }
-
-            yield return null; // Pause the coroutine and resume in the next frame
+            else
+            {
+                yield return null;
+            }
         }
-        Shoot();
-        elapsedTime=0f;
+
+        if (loadedEnergy < currentBattery)
+            Shoot();
+
+        elapsedTime = 0f;
         EnergyBar.GetComponent<Slider>().value = 0;
 
         // The coroutine will only reach this point if !isFiring
@@ -165,7 +168,8 @@ public class RayCastGun : MonoBehaviour
     {
         float usedEnergy = loadedEnergy;
         // Check if there is enough battery and temperature for shooting
-        if (usedEnergy <= currentBattery)
+        Debug.Log("usedEenrgy: "+usedEnergy+" battery"+currentBattery);
+        if (usedEnergy < currentBattery)
         {
 
             currentBattery -= usedEnergy;
@@ -177,70 +181,73 @@ public class RayCastGun : MonoBehaviour
         }
         else
         {
-            // Not enough battery
-            
+            hitText.text = "Not enough battery";
+
         }
-        loadedEnergy = 0f;
+
 
     }
 
     void Fire()
     {
-        float range = GetWeaponRangeValue(weaponRange);
-
-        Vector3 rayOrigin = Camera.main.ViewportToWorldPoint(new Vector3(x, y, z));
-
-        RaycastHit hit;
-
-        if (Physics.Raycast(rayOrigin, laserOrigin.forward, out hit, range))
+        if (currentBattery > loadedEnergy)
         {
-            hitShots++;
+            float range = GetWeaponRangeValue(weaponRange);
 
-            EnemyController controller = hit.collider.GetComponent<EnemyController>();
-            float distance_to_target = Vector3.Distance(rayOrigin, hit.point);
+            Vector3 rayOrigin = Camera.main.ViewportToWorldPoint(new Vector3(x, y, z));
 
-            averageHitDistance = (averageHitDistance * (hitShots - 1) + distance_to_target) / hitShots;
-            
-            float firePower = CalculateFirePower(loadedEnergy, distance_to_target);
-            hitText.text = "Hit";
+            RaycastHit hit;
 
-            laserLine.SetPosition(0, laserOrigin.position);
-            laserLine.SetPosition(1, hit.point);
-            
-            
-            //Debug.Log(firePower);
-            // Deal damage to the target based on the calculated fire power
-
-            if (firePower > 0f)
+            if (Physics.Raycast(rayOrigin, laserOrigin.forward, out hit, range))
             {
-
                 hitShots++;
-                totalDamage += (int)firePower;
-                
-                if (controller != null)
+
+                EnemyController controller = hit.collider.GetComponent<EnemyController>();
+                float distance_to_target = Vector3.Distance(rayOrigin, hit.point);
+
+                averageHitDistance = (averageHitDistance * (hitShots - 1) + distance_to_target) / hitShots;
+
+                float firePower = CalculateFirePower(loadedEnergy, distance_to_target);
+                hitText.text = "Hit";
+
+                laserLine.SetPosition(0, laserOrigin.position);
+                laserLine.SetPosition(1, hit.point);
+
+
+                //Debug.Log(firePower);
+                // Deal damage to the target based on the calculated fire power
+
+                if (firePower > 0f)
                 {
-                    if (controller.TakeDamage(firePower))
+
+                    hitShots++;
+                    totalDamage += (int)firePower;
+
+                    if (controller != null)
                     {
-                        enemiesKilled++;
+                        if (controller.TakeDamage(firePower))
+                        {
+                            enemiesKilled++;
+                        }
+
+
+
                     }
-
-                    
-
                 }
+
+                loadedEnergy = 0f;
+            }
+            else
+            {
+                laserLine.SetPosition(0, laserOrigin.position);
+                laserLine.SetPosition(1, rayOrigin + (laserOrigin.forward * range));
             }
 
-
+            StartCoroutine(RenderLaser());
         }
-        else
-        {
-            laserLine.SetPosition(0, laserOrigin.position);
-            laserLine.SetPosition(1, rayOrigin + (laserOrigin.forward * range));
-        }
-
-        StartCoroutine(RenderLaser());
     }
 
-  
+
 
 
 
@@ -256,7 +263,7 @@ public class RayCastGun : MonoBehaviour
 
     private float CalculateFirePower(float loadedEnergy, float distance_to_target)
     {
-        
+
         return loadedEnergy - (loadedEnergy * (Mathf.Log(distance_to_target) / Mathf.Log(20f)));
     }
 

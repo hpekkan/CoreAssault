@@ -18,7 +18,7 @@ public class GameController : MonoBehaviour
     public Transform characters;
     public Transform lrfs;
 
-    void Start()
+    void Awake()
     {
         rayCastGun = GameObject.Find("laserOrigin").GetComponent<RayCastGun>();
         lrfScript = GameObject.Find("LRFs").GetComponent<LRF>();

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerState : MonoBehaviour
 {
@@ -10,19 +11,22 @@ public class PlayerState : MonoBehaviour
     public CharacterControllerMenu characterController;
     public GunControllerMenu gunController;
     public LRFControllerMenu LRFController;
-    public TextMeshProUGUI inputField;
+    public Text inputField;
+    public string username;
     Dictionary<string, string> prefs;
-    
+    public GameObject usernameField;
+
+    public TextMeshProUGUI difficulty;
+    public int difficultyLevel = 0;
 
     private void Awake()
     {
         prefs = PlayerState.LoadGame();
-
+        difficulty = GameObject.Find("Difficulty").GetComponent<TextMeshProUGUI>();
         characterController.currentCharacter = int.Parse(prefs["character"]);
         gunController.currentGun = int.Parse(prefs["gun"]);
         LRFController.currentLRF = int.Parse(prefs["lrf"]);
-        inputField.SetText(prefs["username"]);
-
+        username = prefs["username"];
         for (int i = 0; i < characterController.characters.Length; i++)
         {
             characterController.characters[i].SetActive(false);
@@ -40,12 +44,27 @@ public class PlayerState : MonoBehaviour
             LRFController.lrfs[i].SetActive(false);
         }
         LRFController.lrfs[LRFController.currentLRF].SetActive(true);
-
-
-
+        GameObject.Find("Placeholder").GetComponent<TextMeshProUGUI>().text = prefs["username"];
+        usernameField = GameObject.Find("UserName");
+        if(username == "")
+        {
+            usernameField.GetComponent<TMP_InputField>().text = "Enter Username...";
+        }
+        usernameField.GetComponent<TMP_InputField>().text = prefs["username"];
+        Debug.Log(usernameField.GetComponent<TMP_InputField>().text);
+        
     }
-
-    
+    public void NextDifficulty()
+    {
+        Debug.Log("Next");
+        difficultyLevel = (difficultyLevel + 1) % 3;
+        difficulty.text = difficultyLevel.ToString();
+    }
+    public void PreviousDifficulty()
+    {
+        difficultyLevel = (difficultyLevel + 2) % 3;
+        difficulty.text = difficultyLevel.ToString();
+    }
     public void SaveGame(string username,int character,int gun,int lrf)
     {
       
@@ -53,7 +72,7 @@ public class PlayerState : MonoBehaviour
         PlayerPrefs.SetInt("character", character);
         PlayerPrefs.SetInt("gun", gun);
         PlayerPrefs.SetInt("lrf", lrf);
-      
+        PlayerPrefs.SetInt("difficulty", difficultyLevel);
 
         PlayerPrefs.Save();
     }
@@ -86,12 +105,26 @@ public class PlayerState : MonoBehaviour
         int character = PlayerPrefs.GetInt("character");
         int gun = PlayerPrefs.GetInt("gun");
         int lrf = PlayerPrefs.GetInt("lrf");
+        int difficulty = PlayerPrefs.GetInt("difficulty");
         prefs.Add("username", username);
         prefs.Add("character", character.ToString());
         prefs.Add("gun", gun.ToString());
         prefs.Add("lrf", lrf.ToString());
+        prefs.Add("difficulty", difficulty.ToString());
 
         return prefs;
     }
-    
+    private void Update()
+    {
+        username = usernameField.GetComponent<TMP_InputField>().text;
+        if(username == "")
+        {
+            usernameField.GetComponent<TMP_InputField>().text = "Enter a name...";
+            usernameField.GetComponent<TMP_InputField>().textComponent.color = Color.gray;
+        }else
+        {
+            usernameField.GetComponent<TMP_InputField>().textComponent.color = Color.black;
+
+        }
+    }
 }

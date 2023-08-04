@@ -18,7 +18,7 @@ public class SelectionController : MonoBehaviour
     public void StartGame()
     {
 
-        playerState.SaveGame(playerState.inputField.text, playerState.characterController.currentCharacter,playerState.gunController.currentGun,playerState.LRFController.currentLRF);
+        playerState.SaveGame(playerState.username, playerState.characterController.currentCharacter,playerState.gunController.currentGun,playerState.LRFController.currentLRF);
 
         SceneManager.LoadScene("GameScene", LoadSceneMode.Single);
     }
