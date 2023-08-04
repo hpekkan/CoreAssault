@@ -8,7 +8,7 @@ public class LRF : MonoBehaviour
     List<GameObject> radarObjects;
     GameObject[] enemies;
     public Transform player;
-    private float angle;
+    public float angle;
     public enum lrfType
     {
         A,
@@ -30,6 +30,7 @@ public class LRF : MonoBehaviour
         {
             angle = 90f;
         }
+        Debug.Log(angle);
     }
 
     private void Update()
